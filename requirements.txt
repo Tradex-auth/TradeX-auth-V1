@@ -1,0 +1,17 @@
+# Core Project Dependencies (Node.js/npm)
+# This file serves as a reference. Use 'npm install' to install from package.json.
+
+express
+vite
+@supabase/supabase-js
+@google/genai
+lucide-react
+recharts
+date-fns
+clsx
+tailwind-merge
+axios
+dotenv
+tsx
+motion
+shadcn/ui (components)
