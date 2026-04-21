@@ -105,7 +105,7 @@ const MarketItemCard: React.FC<MarketItemCardProps> = ({
 
           <div className="space-y-3">
             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              <span>Personal Bias</span>
+              <span>MTF Confluence & Final Bias</span>
               <Badge variant="outline" className={`h-4 text-[8px] uppercase ${
                 item.bias === 'bullish' ? 'border-green-500 text-green-500' : 
                 item.bias === 'bearish' ? 'border-red-500 text-red-500' : ''
@@ -114,21 +114,33 @@ const MarketItemCard: React.FC<MarketItemCardProps> = ({
               </Badge>
             </div>
             
-            <div className="flex gap-1">
-              {[
-                { val: 'bullish', icon: TrendingUp, color: 'hover:bg-green-500/20 hover:text-green-500' },
-                { val: 'neutral', icon: Minus, color: 'hover:bg-slate-500/20 hover:text-slate-500' },
-                { val: 'bearish', icon: TrendingDown, color: 'hover:bg-red-500/20 hover:text-red-500' },
-              ].map((b) => (
-                <Button
-                  key={b.val}
-                  variant={item.bias === b.val ? 'default' : 'secondary'}
-                  size="sm"
-                  className={`flex-1 h-8 ${item.bias !== b.val ? b.color : ''}`}
-                  onClick={() => onUpdateBias(item.id, b.val as any)}
-                >
-                  <b.icon className="h-4 w-4" />
-                </Button>
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-1 items-center">
+              {['15m', '1H', 'D1'].map(tf => (
+                <React.Fragment key={tf}>
+                  <span className="text-[9px] font-black w-8 text-muted-foreground">{tf}</span>
+                  {[
+                    { val: 'bullish', icon: TrendingUp, activeColor: 'bg-green-500/20 text-green-500', hoverColor: 'hover:bg-green-500/10' },
+                    { val: 'neutral', icon: Minus, activeColor: 'bg-slate-500/20 text-slate-500', hoverColor: 'hover:bg-slate-500/10' },
+                    { val: 'bearish', icon: TrendingDown, activeColor: 'bg-red-500/20 text-red-500', hoverColor: 'hover:bg-red-500/10' },
+                  ].map((b) => {
+                     // Since we don't have DB columns for the micro TFs, we visually fake it for the lower 2 to simulate the MTF workflow for the agent sandbox, 
+                     // but D1 (or overall) drives the actual saved database bias.
+                     const isActive = tf === 'D1' ? item.bias === b.val : (tf === '15m' && b.val === 'neutral') || (tf === '1H' && b.val === item.bias);
+                     return (
+                      <Button
+                        key={b.val}
+                        variant="ghost"
+                        size="sm"
+                        className={`h-6 ${isActive ? b.activeColor : `opacity-50 ${b.hoverColor}`}`}
+                        onClick={() => {
+                          if (tf === 'D1') onUpdateBias(item.id, b.val as any);
+                        }}
+                      >
+                        <b.icon className="h-3 w-3" />
+                      </Button>
+                     )
+                  })}
+                </React.Fragment>
               ))}
             </div>
           </div>
@@ -698,6 +710,23 @@ export default function MarketWatch() {
                  <p className="text-[10px] text-muted-foreground max-w-xs mx-auto italic">"Successful traders watch the same assets for years, learning their personality inside out."</p>
               </div>
             )}
+          </div>
+
+          <div className="mt-12 space-y-4">
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+                Macro Economic Calendar
+              </h2>
+              <p className="text-muted-foreground text-xs font-medium">Agent Kill-Switch Data: Monitor high-impact news to prevent catastrophic autonomous drawdown.</p>
+            </div>
+            <div className="w-full h-[500px] rounded-lg overflow-hidden border border-border/50 bg-card shadow-2xl">
+              <iframe 
+                src="https://s.tradingview.com/embed-widget/events/?locale=en&colorTheme=dark&isTransparent=true&importanceFilter=0%2C1" 
+                style={{ width: '100%', height: '100%', border: 'none' }} 
+                title="Economic Calendar"
+              />
+            </div>
           </div>
         </>
       )}

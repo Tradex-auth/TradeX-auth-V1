@@ -42,7 +42,7 @@ import FullChart from './pages/FullChart';
 import Discipline from './pages/Discipline';
 import Goals from './pages/Goals';
 import Reviews from './pages/Reviews';
-import Backtesting from './pages/Backtesting';
+import Simulations from './pages/Simulations';
 import AgenticTrading from './pages/AgenticTrading';
 
 function ThemeToggle() {
@@ -90,7 +90,7 @@ function Navbar({ role }: { role: string | null }) {
     { name: 'Discipline', path: '/discipline', icon: FileCheck },
     { name: 'Goals', path: '/goals', icon: Target },
     { name: 'Reviews', path: '/reviews', icon: TrendingUp },
-    { name: 'Backtesting', path: '/backtesting', icon: BarChart3 },
+    { name: 'Simulations', path: '/simulations', icon: BarChart3 },
     { name: 'Agentic', path: '/agentic-trading', icon: ShieldCheck },
     { name: 'Repository', path: '/repository', icon: Database },
   ];
@@ -257,7 +257,7 @@ export default function App() {
           <Route path="/discipline" element={<Discipline />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/reviews" element={<Reviews />} />
-          <Route path="/backtesting" element={<Backtesting />} />
+          <Route path="/simulations" element={<Simulations />} />
           <Route path="/agentic-trading" element={<AgenticTrading />} />
           <Route path="/repository" element={<Repository />} />
           <Route path="/admin" element={<Admin />} />
