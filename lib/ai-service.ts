@@ -2,8 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import { getEnv } from "./env-config";
 
-const geminiKey = getEnv('GEMINI_API_KEY');
-const openaiKey = getEnv('OPENAI_API_KEY');
+const geminiKey = getEnv('GEMINI_API_KEY') || getEnv('VITE_GEMINI_API_KEY');
+const openaiKey = getEnv('OPENAI_API_KEY') || getEnv('VITE_OPENAI_API_KEY');
 
 if (!geminiKey) console.warn("AI Service: GEMINI_API_KEY is missing. Gemini features will be disabled.");
 if (!openaiKey) console.warn("AI Service: OPENAI_API_KEY is missing. OpenAI features will be disabled.");
@@ -222,6 +222,7 @@ export async function generateMarketAnalysis(symbol: string, bias: string): Prom
     }
     throw new Error("No AI provider available");
   } catch (error) {
+    console.error("Market Analysis AI Error:", error);
     return { text: "Neutral sentiment observed.", cost: "0.000000", provider: 'Fallback' };
   }
 }
@@ -307,6 +308,7 @@ export async function generateMarketBriefing(marketData: string): Promise<{ text
     }
     throw new Error("No AI provider available");
   } catch (error) {
+    console.error("Market Briefing AI Error:", error);
     return { text: "Market briefing currently unavailable.", cost: "0.000000", provider: 'Fallback' };
   }
 }

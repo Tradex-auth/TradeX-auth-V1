@@ -44,6 +44,8 @@ export default function Goals() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [isAiBreakingDown, setIsAiBreakingDown] = useState<string | null>(null);
+  const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
+  const [editingMilestoneTitle, setEditingMilestoneTitle] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -143,6 +145,23 @@ export default function Goals() {
       toast.success('Milestone deleted');
     } catch (err) {
       toast.error('Failed to delete milestone');
+    }
+  }
+
+  async function handleUpdateMilestone(id: string, newTitle: string) {
+    if (!newTitle.trim()) return;
+    try {
+      const { error } = await supabase
+        .from('milestones')
+        .update({ title: newTitle.trim() })
+        .eq('id', id);
+      if (error) throw error;
+      refreshMilestones();
+      toast.success('Milestone updated');
+    } catch (err) {
+      toast.error('Failed to update milestone');
+    } finally {
+      setEditingMilestoneId(null);
     }
   }
 
@@ -305,12 +324,58 @@ export default function Goals() {
                     </Button>
                   </div>
                   <div className="space-y-1 max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
-                    {goalMilestones.map(m => (
-                      <div key={m.id} className="flex items-center gap-3 py-1.5 border-b border-border/20 last:border-0">
-                        <Checkbox checked={m.completed} onCheckedChange={() => handleToggleMilestone(m.id, m.completed)} />
-                        <span className={`text-xs font-medium ${m.completed ? 'line-through text-muted-foreground' : ''}`}>{m.title}</span>
-                      </div>
-                    ))}
+                      {goalMilestones.map(m => (
+                         <div key={m.id} className="flex items-center justify-between py-1.5 border-b border-border/20 last:border-0 hover:bg-muted/10 px-2 -mx-2 rounded-md transition-colors">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <Checkbox checked={m.completed} onCheckedChange={() => handleToggleMilestone(m.id, m.completed)} />
+                              
+                              {editingMilestoneId === m.id ? (
+                                <Input 
+                                  value={editingMilestoneTitle}
+                                  onChange={(e) => setEditingMilestoneTitle(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleUpdateMilestone(m.id, editingMilestoneTitle);
+                                    if (e.key === 'Escape') setEditingMilestoneId(null);
+                                  }}
+                                  onBlur={() => handleUpdateMilestone(m.id, editingMilestoneTitle)}
+                                  className="h-6 text-xs w-full ml-1"
+                                  autoFocus
+                                />
+                              ) : (
+                                <span 
+                                  className={`text-xs font-medium truncate ${m.completed ? 'line-through text-muted-foreground' : ''}`}
+                                  onClick={() => {
+                                    setEditingMilestoneId(m.id);
+                                    setEditingMilestoneTitle(m.title);
+                                  }}
+                                >
+                                  {m.title}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 ml-2">
+                              {editingMilestoneId === m.id ? (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6 text-green-500 hover:text-green-400 hover:bg-green-500/10"
+                                  onClick={() => handleUpdateMilestone(m.id, editingMilestoneTitle)}
+                                >
+                                  <CheckCircle2 className="h-3 w-3" />
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6 opacity-50 hover:opacity-100 text-destructive hover:bg-destructive/10 hover:text-destructive transition-all"
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteMilestone(m.id); }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                         </div>
+                      ))}
                     <div className="pt-2">
                       <Input
                         placeholder="+ Add Milestone"
