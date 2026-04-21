@@ -163,9 +163,9 @@ export default function Simulations() {
       
       for (const strat of activeStrategies) {
         try {
-          // 45 Second Hard Timeout for the Engine
+          // 120 Second Hard Timeout for the Engine
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 45000);
+          const timeoutId = setTimeout(() => controller.abort(), 120000);
 
           const res = await fetch(`${engineUrl}/run-backtest`, {
             method: "POST",
@@ -202,7 +202,7 @@ export default function Simulations() {
           
         } catch (innerError: any) {
           if (innerError.name === 'AbortError') {
-             toast.error(`Error in ${strat.name}: Engine took longer than 45s or crashed (Render OOM). Try a shorter date range!`);
+             toast.error(`Error in ${strat.name}: Engine took longer than 120s or crashed (Render OOM).`);
           } else {
              toast.error(`Syntax Error in ${strat.name}`, {
                description: innerError.message,
@@ -446,9 +446,22 @@ export default function Simulations() {
                   <Input 
                     value={backtestSymbol} 
                     onChange={e => setBacktestSymbol(e.target.value.toUpperCase())}
-                    className="w-24 h-8 bg-background font-bold tracking-widest text-primary uppercase" 
+                    className="w-28 h-8 bg-background font-bold tracking-widest text-primary uppercase" 
                     placeholder="BTC-USD"
+                    list="yfinance-symbols"
                   />
+                  <datalist id="yfinance-symbols">
+                    <option value="BTC-USD" />
+                    <option value="ETH-USD" />
+                    <option value="SOL-USD" />
+                    <option value="GC=F" />
+                    <option value="EURUSD=X" />
+                    <option value="AAPL" />
+                    <option value="NVDA" />
+                    <option value="TSLA" />
+                    <option value="SPY" />
+                    <option value="QQQ" />
+                  </datalist>
                 </div>
                 
                 <div className="flex items-center gap-2 text-muted-foreground">
