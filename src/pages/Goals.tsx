@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { format, differenceInDays, parseISO } from 'date-fns';
-import { 
-  Plus, 
-  Target, 
-  Calendar as CalendarIcon, 
-  Flag, 
-  Trash2, 
-  CheckCircle2, 
-  Circle, 
+import {
+  Plus,
+  Target,
+  Calendar as CalendarIcon,
+  Flag,
+  Trash2,
+  CheckCircle2,
+  Circle,
   Brain,
   ChevronRight,
   AlertTriangle,
@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -67,7 +67,7 @@ export default function Goals() {
           .eq('id', editingGoal.id)
           .select()
           .single();
-        
+
         if (error) throw error;
         toast.success('Goal updated');
       } else {
@@ -80,11 +80,11 @@ export default function Goals() {
             category: formData.category,
             target_date: formData.target_date
           });
-        
+
         if (error) throw error;
         toast.success('Goal created');
       }
-      
+
       setIsDialogOpen(false);
       setEditingGoal(null);
       setFormData({ title: '', description: '', category: 'trading', target_date: format(new Date(), 'yyyy-MM-dd') });
@@ -132,11 +132,25 @@ export default function Goals() {
     }
   }
 
+  async function handleDeleteMilestone(id: string) {
+    try {
+      const { error } = await supabase
+        .from('milestones')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      refreshMilestones();
+      toast.success('Milestone deleted');
+    } catch (err) {
+      toast.error('Failed to delete milestone');
+    }
+  }
+
   async function handleAiBreakdown(goal: Goal) {
     if (!process.env.GEMINI_API_KEY) return;
     setIsAiBreakingDown(goal.id);
     toast.info(`Gemini is planning milestones for: ${goal.title}`);
-    
+
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const prompt = `
@@ -154,7 +168,7 @@ export default function Goals() {
       });
 
       const lines = result.text?.split('\n').filter(l => l.trim().length > 0) || [];
-      
+
       const newMilestones = lines.map(line => ({
         goal_id: goal.id,
         title: line.trim(),
@@ -202,7 +216,7 @@ export default function Goals() {
           </h1>
           <p className="text-muted-foreground text-sm font-medium">Map out your milestones and track your progress to 2026.</p>
         </div>
-        
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger render={<Button className="font-bold uppercase tracking-widest gap-2" />}>
             <Plus className="h-4 w-4" />
@@ -215,16 +229,16 @@ export default function Goals() {
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
                 <Label>Title</Label>
-                <Input placeholder="E.g. Full-time Trading Readiness" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+                <Input placeholder="E.g. Full-time Trading Readiness" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>
-                <Input placeholder="What exactly does success look like?" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                <Input placeholder="What exactly does success look like?" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category</Label>
-                  <Select value={formData.category} onValueChange={v => setFormData({...formData, category: v as any})}>
+                  <Select value={formData.category} onValueChange={v => setFormData({ ...formData, category: v as any })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -235,7 +249,7 @@ export default function Goals() {
                 </div>
                 <div className="space-y-2">
                   <Label>Target Date</Label>
-                  <Input type="date" value={formData.target_date} onChange={e => setFormData({...formData, target_date: e.target.value})} />
+                  <Input type="date" value={formData.target_date} onChange={e => setFormData({ ...formData, target_date: e.target.value })} />
                 </div>
               </div>
             </div>
@@ -273,61 +287,61 @@ export default function Goals() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="flex-1 space-y-6">
                 <div className="space-y-2">
-                   <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-widest">
-                      <span className="text-primary">{completedCount}/{goalMilestones.length} Milestones</span>
-                      <span>{progress.toFixed(0)}%</span>
-                   </div>
-                   <Progress value={progress} className="h-2 bg-muted" />
+                  <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-primary">{completedCount}/{goalMilestones.length} Milestones</span>
+                    <span>{progress.toFixed(0)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2 bg-muted" />
                 </div>
 
                 <div className="space-y-2">
-                   <div className="flex justify-between items-center mb-1">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Milestones</Label>
-                      <Button variant="ghost" size="sm" onClick={() => handleAiBreakdown(goal)} disabled={isAiBreakingDown === goal.id} className="h-6 text-[9px] font-black uppercase tracking-widest text-primary gap-1">
-                        {isAiBreakingDown === goal.id ? 'Breaking down...' : <>AI Breakdown <Brain className="h-3 w-3" /></>}
-                      </Button>
-                   </div>
-                   <div className="space-y-1 max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
-                      {goalMilestones.map(m => (
-                         <div key={m.id} className="flex items-center gap-3 py-1.5 border-b border-border/20 last:border-0">
-                            <Checkbox checked={m.completed} onCheckedChange={() => handleToggleMilestone(m.id, m.completed)} />
-                            <span className={`text-xs font-medium ${m.completed ? 'line-through text-muted-foreground' : ''}`}>{m.title}</span>
-                         </div>
-                      ))}
-                      <div className="pt-2">
-                         <Input 
-                            placeholder="+ Add Milestone" 
-                            className="h-8 text-xs bg-muted/20 border-border/40" 
-                            onKeyDown={e => {
-                               if (e.key === 'Enter') {
-                                  handleAddMilestone(goal.id, e.currentTarget.value);
-                                  e.currentTarget.value = '';
-                               }
-                            }}
-                         />
+                  <div className="flex justify-between items-center mb-1">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Milestones</Label>
+                    <Button variant="ghost" size="sm" onClick={() => handleAiBreakdown(goal)} disabled={isAiBreakingDown === goal.id} className="h-6 text-[9px] font-black uppercase tracking-widest text-primary gap-1">
+                      {isAiBreakingDown === goal.id ? 'Breaking down...' : <>AI Breakdown <Brain className="h-3 w-3" /></>}
+                    </Button>
+                  </div>
+                  <div className="space-y-1 max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
+                    {goalMilestones.map(m => (
+                      <div key={m.id} className="flex items-center gap-3 py-1.5 border-b border-border/20 last:border-0">
+                        <Checkbox checked={m.completed} onCheckedChange={() => handleToggleMilestone(m.id, m.completed)} />
+                        <span className={`text-xs font-medium ${m.completed ? 'line-through text-muted-foreground' : ''}`}>{m.title}</span>
                       </div>
-                   </div>
+                    ))}
+                    <div className="pt-2">
+                      <Input
+                        placeholder="+ Add Milestone"
+                        className="h-8 text-xs bg-muted/20 border-border/40"
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            handleAddMilestone(goal.id, e.currentTarget.value);
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </CardContent>
 
               <CardFooter className="pt-4 border-t border-border/20 flex justify-between">
-                 <div className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                   <CalendarIcon className="h-3 w-3" />
-                   Target: {format(parseISO(goal.target_date), 'PPP')}
-                 </div>
-                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openEditGoal(goal)}>
-                      <ChevronRight className="h-4 w-4" /> 
-                   </Button>
-                   {!goal.is_pinned && (
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteGoal(goal.id)}>
-                        <Trash2 className="h-4 w-4" />
-                     </Button>
-                   )}
-                 </div>
+                <div className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                  <CalendarIcon className="h-3 w-3" />
+                  Target: {format(parseISO(goal.target_date), 'PPP')}
+                </div>
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openEditGoal(goal)}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  {!goal.is_pinned && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteGoal(goal.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </CardFooter>
             </Card>
           );

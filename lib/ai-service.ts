@@ -41,7 +41,7 @@ export async function getMotivationQuote() {
       const cost = estimateCost(estimateTokens(prompt), response.usage?.completion_tokens || 0, 'gpt-4o');
       return { text, cost, provider: 'OpenAI' };
     }
-    
+
     if (genAI) {
       const model = "gemini-3-flash-preview";
       const prompt = "Generate a raw, blunt, Hinglish motivation quote (mix of Hindi/English) about trading, aukaat, discipline, and building wealth. Max 15 words. Be informal and direct.";
@@ -327,7 +327,7 @@ export async function generateLearningReminder(): Promise<string> {
       });
       return response.choices[0].message.content || "Time to master the charts. Every hour spent learning is a step closer to freedom.";
     }
-    
+
     if (genAI) {
       const response = await genAI.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -367,26 +367,26 @@ export async function summarizeWeek(achievements: string[], calendarEvents: stri
     
     Provide a concise summary (3-4 sentences) and one actionable tip for next week.
   `;
-  
+
   try {
-     if (genAI) {
-        const response = await genAI.models.generateContent({
-           model: "gemini-3-flash-preview",
-           contents: prompt,
-        });
-        return response.text || "Great work this week!";
-     }
-     if (openai) {
-        const response = await openai.chat.completions.create({
-           model: "gpt-4o",
-           messages: [{ role: "user", content: prompt }]
-        });
-        return response.choices[0].message.content || "Great work this week!";
-     }
-     return "AI services unavailable.";
+    if (genAI) {
+      const response = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+      });
+      return response.text || "Great work this week!";
+    }
+    if (openai) {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }]
+      });
+      return response.choices[0].message.content || "Great work this week!";
+    }
+    return "AI services unavailable.";
   } catch (error) {
-     console.error("Summary Error:", error);
-     return "Could not generate summary.";
+    console.error("Summary Error:", error);
+    return "Could not generate summary.";
   }
 }
 
@@ -409,27 +409,27 @@ export async function scoreProductivity(plan: string, achieved: string) {
     
     Return ONLY a single number representing the score. No explanation.
   `;
-  
+
   try {
-     if (genAI) {
-        const response = await genAI.models.generateContent({
-           model: "gemini-3-flash-preview",
-           contents: prompt,
-        });
-        const score = parseInt(response.text?.trim() || "0");
-        return isNaN(score) ? 0 : score;
-     }
-     if (openai) {
-        const response = await openai.chat.completions.create({
-           model: "gpt-3.5-turbo",
-           messages: [{ role: "user", content: prompt }]
-        });
-        const score = parseInt(response.choices[0].message.content?.trim() || "0");
-        return isNaN(score) ? 0 : score;
-     }
-     return 0;
+    if (genAI) {
+      const response = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+      });
+      const score = parseInt(response.text?.trim() || "0");
+      return isNaN(score) ? 0 : score;
+    }
+    if (openai) {
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }]
+      });
+      const score = parseInt(response.choices[0].message.content?.trim() || "0");
+      return isNaN(score) ? 0 : score;
+    }
+    return 0;
   } catch (error) {
-     console.error("Score Error:", error);
-     return 0;
+    console.error("Score Error:", error);
+    return 0;
   }
 }
