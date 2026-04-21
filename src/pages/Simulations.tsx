@@ -203,6 +203,11 @@ export default function Simulations() {
         } catch (innerError: any) {
           if (innerError.name === 'AbortError') {
              toast.error(`Error in ${strat.name}: Engine took longer than 120s or crashed (Render OOM).`);
+          } else if (innerError.message === 'Failed to fetch' || innerError.message.includes('NetworkError') || innerError.message.includes('Failed to connect')) {
+             toast.error(`⚠️ Desktop Engine Offline`, {
+               description: "Please launch the TradeX Desktop Engine app on your computer. If it's already running, ensure port 8000 is open.",
+               duration: 8000
+             });
           } else {
              toast.error(`Syntax Error in ${strat.name}`, {
                description: innerError.message,
@@ -224,7 +229,11 @@ export default function Simulations() {
       
       setBacktestResults(results);
     } catch (err: any) {
-      toast.error(err.message || 'Failed connecting to Python Engine');
+      if (err.message === 'Failed to fetch' || err.message.includes('NetworkError') || err.message.includes('Failed to connect')) {
+        toast.error(`⚠️ Desktop Engine Offline: To run backtests, please launch the TradeX Desktop Engine app on your computer first!`);
+      } else {
+        toast.error(err.message || 'Failed connecting to Python Engine');
+      }
     } finally {
       setIsBacktesting(false);
     }
