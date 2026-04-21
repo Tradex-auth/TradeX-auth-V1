@@ -11,6 +11,7 @@ import { FlaskConical, Crosshair, Bot, TrendingUp, Percent, Settings2, Play, Cod
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { autoFixPythonCode } from '@/lib/ai-service';
 
 interface Strategy {
   id: string;
@@ -203,7 +204,20 @@ export default function Simulations() {
           if (innerError.name === 'AbortError') {
              toast.error(`Error in ${strat.name}: Engine took longer than 45s or crashed (Render OOM). Try a shorter date range!`);
           } else {
-             toast.error(`Error in ${strat.name}: ${innerError.message}`);
+             toast.error(`Syntax Error in ${strat.name}`, {
+               description: innerError.message,
+               duration: 10000,
+               action: {
+                 label: 'Auto-Fix',
+                 onClick: async () => {
+                   toast.loading("AI is analyzing and rewriting your algorithmic code...", { id: "autofix" });
+                   const fixedCode = await autoFixPythonCode(strat.code, innerError.message);
+                   updateStrategy(strat.id, 'code', fixedCode);
+                   toast.dismiss("autofix");
+                   toast.success("Code successfully rewritten! Try running the backtest again.");
+                 }
+               }
+             });
           }
         }
       }

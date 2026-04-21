@@ -435,3 +435,38 @@ export async function scoreProductivity(plan: string, achieved: string) {
     return 0;
   }
 }
+
+export async function autoFixPythonCode(code: string, errorMessage: string): Promise<string> {
+  const prompt = `
+    You are an expert Python Quantitative Developer specializing in the VectorBT library.
+    The user wrote this strategy code for an algorithmic backtest engine, but it threw an error.
+    
+    Original Code:
+    ${code}
+    
+    Python Error Output:
+    ${errorMessage}
+    
+    INSTRUCTIONS:
+    1. Fix the error. 
+    2. Crucially, the user MUST define 'entries' and 'exits' lists/arrays/series as their output variables. 
+    3. They do NOT need to fetch yfinance data if they are trying to fetch it themselves; the engine natively provides the variable 'close' (Pandas Series) for them based on their UI selection. Warn them via python comment not to download yfinance manually and to just use 'close' directly if that caused the shape mismatch.
+    4. Provide ONLY the raw, corrected valid Python code. No markdown formatting (\`\`\`python), no explanations. Just raw code.
+  `;
+
+  try {
+    if (openai) {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 500
+      });
+      let text = response.choices[0].message.content || code;
+      return text.replace(/```python\n?/g, '').replace(/```/g, '').trim();
+    }
+    return code;
+  } catch (error) {
+    console.error("AutoFix Error:", error);
+    return code;
+  }
+}
