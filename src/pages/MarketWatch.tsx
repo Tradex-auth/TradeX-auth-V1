@@ -160,15 +160,26 @@ const MarketItemCard: React.FC<MarketItemCardProps> = ({
           </div>
 
           <div className="flex flex-col gap-3 pt-2">
-            <Button 
+            <div className="flex gap-2">
+              <Button 
                 variant={isChartActive ? "secondary" : "default"}
                 size="sm" 
                 onClick={() => onToggleChart(item.symbol)}
-                className="w-full font-black tracking-widest uppercase gap-2 py-5 shadow-lg shadow-primary/10 transition-all hover:scale-[1.02] active:scale-95"
+                className="flex-1 font-black tracking-widest uppercase gap-2 py-5 shadow-lg shadow-primary/10 transition-all hover:scale-[1.02] active:scale-95"
               >
                 {isChartActive ? <LineChartIcon className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                {isChartActive ? 'Collapse Analysis' : 'View Real-Time Chart'}
-            </Button>
+                {isChartActive ? 'Collapse' : 'Chart'}
+              </Button>
+              <Button 
+                variant="outline"
+                size="sm" 
+                onClick={() => window.open(`/market/chart/${item.symbol}`, '_blank')}
+                className="font-black tracking-widest uppercase gap-2 py-5 border-primary/50 hover:bg-primary/10 transition-all hover:scale-[1.02] active:scale-95"
+                title="Open Full Screen Pro Chart"
+              >
+                Open Pro
+              </Button>
+            </div>
             
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
@@ -511,13 +522,28 @@ export default function MarketWatch() {
             </div>
             
             <div className="flex items-center gap-2 w-full md:w-auto">
-              <Button variant="ghost" size="icon" onClick={fetchData} className="h-10 w-10 text-muted-foreground hover:text-primary" title="Refresh Data">
+              <Button variant="ghost" size="icon" onClick={fetchData} className="h-10 w-10 text-muted-foreground hover:text-primary shrink-0" title="Refresh Data">
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-              <div className="relative flex-1 md:w-64">
+              
+              <Select onValueChange={(val) => setNewSymbol(val)}>
+                <SelectTrigger className="w-[180px] font-bold uppercase tracking-wide">
+                  <SelectValue placeholder="Top Assets" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Forex</div>
+                  {['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2 border-t border-border/50">Crypto</div>
+                  {['BTCUSD', 'ETHUSD', 'SOLUSD', 'XRPUSD', 'ADAUSD', 'DOTUSD', 'DOGEUSD', 'MATICUSD', 'LINKUSD', 'BNBUSD'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2 border-t border-border/50">Commodities & Indices</div>
+                  {['XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NGAS', 'COPPER', 'SPX', 'NDX', 'DXY', 'NVDA', 'TSLA'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <div className="relative flex-1 md:w-48">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search Symbol (e.g. NVDA)" 
+              placeholder="Search..." 
               className="pl-9 font-bold uppercase transition-all focus:ring-2 focus:ring-primary/50" 
               value={newSymbol}
               onChange={e => {

@@ -38,6 +38,7 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import TradeJournal from './pages/TradeJournal';
 import MarketWatch from './pages/MarketWatch';
+import FullChart from './pages/FullChart';
 import Discipline from './pages/Discipline';
 import Goals from './pages/Goals';
 import Reviews from './pages/Reviews';
@@ -252,6 +253,7 @@ export default function App() {
           <Route path="/dashboard/analytics" element={<Analytics />} />
           <Route path="/trade-journal" element={<TradeJournal />} />
           <Route path="/market" element={<MarketWatch />} />
+          <Route path="/market/chart/:symbol" element={<FullChart />} />
           <Route path="/discipline" element={<Discipline />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/reviews" element={<Reviews />} />
