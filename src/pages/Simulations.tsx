@@ -33,6 +33,7 @@ export default function Simulations() {
   const [dateRange, setDateRange] = useState('1Y');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
+  const [backtestSymbol, setBacktestSymbol] = useState('BTC-USD');
   const [isBacktesting, setIsBacktesting] = useState(false);
   const [backtestResults, setBacktestResults] = useState<any[]>([]);
 
@@ -69,32 +70,75 @@ export default function Simulations() {
     setStrategies([...strategies, { 
       id: Date.now().toString(), 
       name: `Strategy ${strategies.length + 1}`, 
-      code: '# Import libraries\nimport vectorbt as vbt\n', 
+      code: 'import vectorbt as vbt\nimport numpy as np\n\nfast_ma = vbt.MA.run(close, 10)\nslow_ma = vbt.MA.run(close, 50)\n\nentries = fast_ma.ma_crossed_above(slow_ma)\nexits = fast_ma.ma_crossed_below(slow_ma)\n', 
       isActive: false 
     }]);
   };
 
-  const runBacktest = () => {
+  const runBacktest = async () => {
     const activeStrategies = strategies.filter(s => s.isActive);
     if (activeStrategies.length === 0) return toast.error('No strategies toggled ON for backtesting.');
+    if (!backtestSymbol) return toast.error('Please enter a valid Yahoo Finance Symbol (e.g. BTC-USD)');
     
+    let start_date = customStart;
+    let end_date = customEnd;
+    
+    const d = new Date();
+    if (dateRange !== 'CUSTOM') {
+      end_date = d.toISOString().split('T')[0];
+      if (dateRange === '1Y') d.setFullYear(d.getFullYear() - 1);
+      if (dateRange === '2Y') d.setFullYear(d.getFullYear() - 2);
+      if (dateRange === '5Y') d.setFullYear(d.getFullYear() - 5);
+      start_date = d.toISOString().split('T')[0];
+    }
+
+    if (!start_date || !end_date) return toast.error('Check your date range parameters.');
+
     setIsBacktesting(true);
     setBacktestResults([]);
+    toast.success(`Starting VectorBT engine for ${activeStrategies.length} strategies...`);
     
-    // Simulate VectorBT backtest execution
-    setTimeout(() => {
-      const results = activeStrategies.map(s => ({
-        id: s.id,
-        name: s.name,
-        winRate: (Math.random() * 30 + 40).toFixed(2),
-        totalReturn: (Math.random() * 150 - 20).toFixed(2),
-        maxDrawdown: (Math.random() * 20 + 5).toFixed(2),
-        tradesCount: Math.floor(Math.random() * 200 + 50)
-      }));
+    try {
+      const results = [];
+      for (const strat of activeStrategies) {
+        try {
+          const res = await fetch("http://127.0.0.1:8000/run-backtest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: strat.code,
+              symbol: backtestSymbol,
+              start_date,
+              end_date
+            })
+          });
+          
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.detail || "Server error");
+          }
+          
+          const data = await res.json();
+          results.push({
+            id: strat.id,
+            name: strat.name,
+            winRate: data.winRate,
+            totalReturn: data.totalReturn,
+            maxDrawdown: data.maxDrawdown,
+            tradesCount: data.tradesCount
+          });
+          
+        } catch (innerError: any) {
+          toast.error(`Error in ${strat.name}: ${innerError.message}`);
+        }
+      }
+      
       setBacktestResults(results);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed connecting to Python Engine');
+    } finally {
       setIsBacktesting(false);
-      toast.success('VectorBT Backtest completed successfully!');
-    }, 2500);
+    }
   };
 
   return (
@@ -301,6 +345,16 @@ export default function Simulations() {
             <CardContent className="pt-6 space-y-6">
               
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-muted/20 p-4 rounded-lg border border-border/50">
+                <div className="flex items-center gap-2 text-muted-foreground shrink-0 border-r border-border/50 pr-4">
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Asset Symbol</span>
+                  <Input 
+                    value={backtestSymbol} 
+                    onChange={e => setBacktestSymbol(e.target.value.toUpperCase())}
+                    className="w-24 h-8 bg-background font-bold tracking-widest text-primary uppercase" 
+                    placeholder="BTC-USD"
+                  />
+                </div>
+                
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CalendarIcon className="h-4 w-4" />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Historical Range</span>
