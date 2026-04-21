@@ -6,11 +6,11 @@ import { Badge } from '@/components/ui/badge';
 
 export function DownloadEngine() {
   const downloadMac = () => {
-    alert("Mac deployment pipeline compiling. (This will trigger the .app download)");
+    window.location.href = "/TradeX-Engine.zip";
   };
 
   const downloadWindows = () => {
-    alert("Windows deployment pipeline compiling. (This will trigger the .exe download)");
+    window.location.href = "/TradeX-Engine.zip";
   };
 
   return (
