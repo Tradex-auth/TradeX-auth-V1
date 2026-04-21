@@ -100,7 +100,8 @@ export default function Simulations() {
     
     try {
       const results = [];
-      const engineUrl = import.meta.env.VITE_PYTHON_ENGINE_URL || "http://127.0.0.1:8000";
+      const envUrl = import.meta.env.VITE_PYTHON_ENGINE_URL || "http://127.0.0.1:8000";
+      const engineUrl = envUrl.replace(/\/$/, ""); // Prevents double slash //run-backtest error
       
       for (const strat of activeStrategies) {
         try {
