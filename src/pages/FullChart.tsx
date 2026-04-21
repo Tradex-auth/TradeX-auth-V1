@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Maximize } from 'lucide-react';
+import { ChevronLeft, Maximize, Play, Pause, Brain } from 'lucide-react';
 
 const SYMBOL_MAP: Record<string, string> = {
   'BTC': 'BINANCE:BTCUSDT',
@@ -18,6 +18,7 @@ const SYMBOL_MAP: Record<string, string> = {
 export default function FullChart() {
   const { symbol } = useParams<{ symbol: string }>();
   const navigate = useNavigate();
+  const [isAgentActive, setIsAgentActive] = useState(false);
   
   if (!symbol) return null;
 
@@ -40,6 +41,23 @@ export default function FullChart() {
             <span className="font-black tracking-widest uppercase text-lg">{symbol}</span>
             <span className="text-muted-foreground text-xs font-bold ml-2">PRO CHART</span>
           </div>
+        </div>
+        
+        <div>
+          <Button 
+            variant="default"
+            size="sm"
+            onClick={() => setIsAgentActive(!isAgentActive)}
+            className={`font-black tracking-widest uppercase gap-2 shadow-lg transition-all ${
+              isAgentActive 
+                ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/20' 
+                : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20'
+            }`}
+          >
+            <Brain className="h-4 w-4" />
+            Agent
+            {isAgentActive ? <Pause className="h-4 w-4 ml-1" /> : <Play className="h-4 w-4 ml-1" />}
+          </Button>
         </div>
       </div>
       <div className="flex-1 w-full h-full relative">
