@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { FlaskConical, Crosshair, Bot, TrendingUp, Percent, Settings2, Play, Code2, Plus, Calendar as CalendarIcon, Trash2, Power, DownloadCloud } from 'lucide-react';
+import { FlaskConical, Crosshair, Bot, TrendingUp, Percent, Settings2, Play, Code2, Plus, Calendar as CalendarIcon, Trash2, Power, DownloadCloud, CloudUpload } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Strategy {
   id: string;
@@ -20,6 +22,7 @@ interface Strategy {
 const POPULAR_SYMBOLS = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'SPX', 'NDX', 'USOIL', 'NVDA', 'TSLA'];
 
 export default function Simulations() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'backtesting' | 'forward'>('forward');
   
   // Forward Testing State
@@ -27,17 +30,63 @@ export default function Simulations() {
   const [newTrade, setNewTrade] = useState({ symbol: '', entry: '', dir: 'long' });
 
   // Backtesting State
-  const [strategies, setStrategies] = useState<Strategy[]>(() => {
-    const saved = localStorage.getItem('tradex_strategies');
-    if (saved) return JSON.parse(saved);
-    return [
-      { id: '1', name: 'SMA Crossover VectorBT', code: 'import vectorbt as vbt\nimport numpy as np\nimport ta\n\nfast_ma = vbt.MA.run(close, 10)\nslow_ma = vbt.MA.run(close, 50)\n\nentries = fast_ma.ma_crossed_above(slow_ma)\nexits = fast_ma.ma_crossed_below(slow_ma)\n', isActive: false }
-    ];
-  });
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
+  // Load from Supabase on mount
   useEffect(() => {
-    localStorage.setItem('tradex_strategies', JSON.stringify(strategies));
-  }, [strategies]);
+    const fetchCloudStrategies = async () => {
+      if (!user) return;
+      const { data, error } = await supabase.from('user_strategies').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+      if (!error && data && data.length > 0) {
+        setStrategies(data.map(d => ({
+          id: d.id,
+          name: d.name,
+          code: d.code,
+          isActive: d.is_active
+        })));
+      } else if (strategies.length === 0) {
+        // Fallback default if empty DB
+        setStrategies([
+          { id: Date.now().toString(), name: 'SMA Crossover VectorBT', code: 'import vectorbt as vbt\nimport numpy as np\nimport ta\n\nfast_ma = vbt.MA.run(close, 10)\nslow_ma = vbt.MA.run(close, 50)\n\nentries = fast_ma.ma_crossed_above(slow_ma)\nexits = fast_ma.ma_crossed_below(slow_ma)\n', isActive: false }
+        ]);
+      }
+    };
+    fetchCloudStrategies();
+  }, [user]);
+
+  const syncToCloud = async () => {
+    if (!user) return toast.error("Must be logged in to sync to cloud.");
+    setIsSyncing(true);
+    try {
+      await supabase.from('user_strategies').delete().eq('user_id', user.id);
+      
+      if (strategies.length > 0) {
+        const inserts = strategies.map(s => ({
+          user_id: user.id,
+          name: s.name,
+          code: s.code,
+          is_active: s.isActive
+        }));
+        const { error } = await supabase.from('user_strategies').insert(inserts);
+        if (error) throw error;
+      }
+      toast.success("Successfully Synced Strategies to Supabase Cloud!");
+      
+      // Reload strategies to get accurate DB UUIDs
+      const { data } = await supabase.from('user_strategies').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+      if (data) {
+        setStrategies(data.map(d => ({
+          id: d.id, name: d.name, code: d.code, isActive: d.is_active
+        })));
+      }
+    } catch (err) {
+      toast.error("Failed to sync to Supabase.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const [dateRange, setDateRange] = useState('1Y');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
@@ -339,6 +388,10 @@ export default function Simulations() {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-4">
+                <Button variant="outline" onClick={syncToCloud} disabled={isSyncing} className="hidden lg:flex font-bold uppercase tracking-widest text-[10px] text-muted-foreground hover:text-primary gap-2">
+                  <CloudUpload className="h-4 w-4" />
+                  {isSyncing ? "Syncing..." : "Sync to Cloud"}
+                </Button>
                 <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-lg border border-border/50">
                   <Power className="h-4 w-4 text-muted-foreground" />
                   <Label className="text-xs font-bold uppercase tracking-widest cursor-pointer whitespace-nowrap">Toggle All</Label>
