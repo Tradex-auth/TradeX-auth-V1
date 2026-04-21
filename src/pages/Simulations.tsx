@@ -158,13 +158,18 @@ export default function Simulations() {
     try {
       const results = [];
       const envUrl = import.meta.env.VITE_PYTHON_ENGINE_URL || "http://127.0.0.1:8000";
-      const engineUrl = envUrl.replace(/\/$/, ""); // Prevents double slash //run-backtest error
+      const engineUrl = envUrl.replace(/\/$/, ""); 
       
       for (const strat of activeStrategies) {
         try {
+          // 45 Second Hard Timeout for the Engine
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 45000);
+
           const res = await fetch(`${engineUrl}/run-backtest`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
             body: JSON.stringify({
               code: strat.code,
               symbol: backtestSymbol,
@@ -173,9 +178,15 @@ export default function Simulations() {
             })
           });
           
+          clearTimeout(timeoutId);
+          
           if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.detail || "Server error");
+            let detail = "Server error";
+            try {
+              const errData = await res.json();
+              detail = errData.detail || detail;
+            } catch (e) {}
+            throw new Error(detail);
           }
           
           const data = await res.json();
@@ -189,7 +200,11 @@ export default function Simulations() {
           });
           
         } catch (innerError: any) {
-          toast.error(`Error in ${strat.name}: ${innerError.message}`);
+          if (innerError.name === 'AbortError') {
+             toast.error(`Error in ${strat.name}: Engine took longer than 45s or crashed (Render OOM). Try a shorter date range!`);
+          } else {
+             toast.error(`Error in ${strat.name}: ${innerError.message}`);
+          }
         }
       }
       
@@ -401,8 +416,11 @@ export default function Simulations() {
                   />
                 </div>
                 <Button onClick={runBacktest} disabled={isBacktesting} className="font-black uppercase tracking-widest gap-2">
-                  {isBacktesting ? <span className="animate-pulse">Running...</span> : <Play className="h-4 w-4" />}
-                  Run Backtest
+                  {isBacktesting ? (
+                    <><span className="animate-pulse flex items-center gap-2"><Play className="h-4 w-4" /> Running...</span></>
+                  ) : (
+                    <><Play className="h-4 w-4" /> Run Backtest</>
+                  )}
                 </Button>
               </div>
             </CardHeader>
