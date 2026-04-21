@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { autoFixPythonCode } from '@/lib/ai-service';
-
+import { DownloadEngine } from '../components/DownloadEngine';
 interface Strategy {
   id: string;
   name: string;
@@ -414,6 +414,7 @@ export default function Simulations() {
 
       {activeTab === 'backtesting' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
+          <DownloadEngine />
           <Card className="bg-card/50 border-border/50">
             <CardHeader className="flex flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-border/20">
               <div>

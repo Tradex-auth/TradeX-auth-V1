@@ -10,7 +10,6 @@ import { CountdownHeader } from '../components/CountdownHeader';
 import DeepWorkTracker from '../components/DeepWorkTracker';
 import { MorningBriefing } from '../components/MorningBriefing';
 import PatternDetector from '../components/PatternDetector';
-import { DownloadEngine } from '../components/DownloadEngine';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -1053,10 +1052,6 @@ export default function Dashboard() {
            </CardContent>
         </Card>
       </div>
-      </div>
-      
-      <div className="mt-8 border-t border-border/40 pt-8">
-        <DownloadEngine />
       </div>
     </div>
   );
