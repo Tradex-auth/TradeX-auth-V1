@@ -18,6 +18,7 @@ import {
   Lock,
   Mail
 } from 'lucide-react';
+import { DownloadEngine } from '../components/DownloadEngine';
 
 export default function Login() {
   const { user } = useAuth();
@@ -165,6 +166,10 @@ export default function Login() {
               </div>
               <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/40 blur-[60px]" />
             </motion.div>
+            
+            <div className="md:col-span-2 mt-4 hidden lg:block">
+              <DownloadEngine />
+            </div>
           </div>
         </div>
 
