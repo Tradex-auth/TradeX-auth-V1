@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: tradex-python-engine
+    env: python
+    rootDir: python-engine
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free

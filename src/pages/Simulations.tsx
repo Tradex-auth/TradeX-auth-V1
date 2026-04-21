@@ -100,9 +100,11 @@ export default function Simulations() {
     
     try {
       const results = [];
+      const engineUrl = import.meta.env.VITE_PYTHON_ENGINE_URL || "http://127.0.0.1:8000";
+      
       for (const strat of activeStrategies) {
         try {
-          const res = await fetch("http://127.0.0.1:8000/run-backtest", {
+          const res = await fetch(`${engineUrl}/run-backtest`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
