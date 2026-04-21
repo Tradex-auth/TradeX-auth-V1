@@ -4,5 +4,23 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/crons/nightly-journal",
+      "schedule": "30 17 * * *"
+    },
+    {
+      "path": "/api/crons/final-reminder",
+      "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/crons/learning-reminder",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/crons/morning-briefing",
+      "schedule": "30 4 * * *"
+    }
   ]
 }
