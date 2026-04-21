@@ -6,6 +6,7 @@ import pandas as pd
 import vectorbt as vbt
 import numpy as np
 import traceback
+import ta
 
 app = FastAPI(title="TradeX VectorBT Engine")
 
@@ -43,6 +44,7 @@ def run_backtest(req: BacktestRequest):
             'vbt': vbt,
             'np': np,
             'pd': pd,
+            'ta': ta,
             'close': close
         }
 

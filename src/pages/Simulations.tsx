@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,17 @@ export default function Simulations() {
   const [newTrade, setNewTrade] = useState({ symbol: '', entry: '', dir: 'long' });
 
   // Backtesting State
-  const [strategies, setStrategies] = useState<Strategy[]>([
-    { id: '1', name: 'SMA Crossover VectorBT', code: 'import vectorbt as vbt\nimport numpy as np\n\n# VectorBT Strategy Example\ndef sma_crossover(close, fast_window, slow_window):\n    fast_ma = vbt.MA.run(close, fast_window)\n    slow_ma = vbt.MA.run(close, slow_window)\n    entries = fast_ma.ma_crossed_above(slow_ma)\n    exits = fast_ma.ma_crossed_below(slow_ma)\n    return entries, exits', isActive: false }
-  ]);
+  const [strategies, setStrategies] = useState<Strategy[]>(() => {
+    const saved = localStorage.getItem('tradex_strategies');
+    if (saved) return JSON.parse(saved);
+    return [
+      { id: '1', name: 'SMA Crossover VectorBT', code: 'import vectorbt as vbt\nimport numpy as np\nimport ta\n\nfast_ma = vbt.MA.run(close, 10)\nslow_ma = vbt.MA.run(close, 50)\n\nentries = fast_ma.ma_crossed_above(slow_ma)\nexits = fast_ma.ma_crossed_below(slow_ma)\n', isActive: false }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tradex_strategies', JSON.stringify(strategies));
+  }, [strategies]);
   const [dateRange, setDateRange] = useState('1Y');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
