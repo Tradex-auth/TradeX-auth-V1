@@ -148,6 +148,7 @@ export default function Repository() {
         .eq('id', user.id);
       
       if (error) throw error;
+      await refreshProfile();
       toast.success('Google Doc URL saved');
       setIsDocSettingsOpen(false);
     } catch (err: any) {
