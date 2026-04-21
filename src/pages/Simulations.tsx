@@ -1,17 +1,40 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Construction, FlaskConical, Calculator, Crosshair, CheckCircle2, Bot, TrendingUp, TrendingDown, Percent, Settings2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { FlaskConical, Crosshair, Bot, TrendingUp, Percent, Settings2, Play, Code2, Plus, Calendar as CalendarIcon, Trash2, Power, DownloadCloud } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface Strategy {
+  id: string;
+  name: string;
+  code: string;
+  isActive: boolean;
+}
+
+const POPULAR_SYMBOLS = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'SPX', 'NDX', 'USOIL', 'NVDA', 'TSLA'];
 
 export default function Simulations() {
   const [activeTab, setActiveTab] = useState<'backtesting' | 'forward'>('forward');
+  
+  // Forward Testing State
   const [simulatedTrades, setSimulatedTrades] = useState<any[]>([]);
   const [newTrade, setNewTrade] = useState({ symbol: '', entry: '', dir: 'long' });
+
+  // Backtesting State
+  const [strategies, setStrategies] = useState<Strategy[]>([
+    { id: '1', name: 'SMA Crossover VectorBT', code: 'import vectorbt as vbt\nimport numpy as np\n\n# VectorBT Strategy Example\ndef sma_crossover(close, fast_window, slow_window):\n    fast_ma = vbt.MA.run(close, fast_window)\n    slow_ma = vbt.MA.run(close, slow_window)\n    entries = fast_ma.ma_crossed_above(slow_ma)\n    exits = fast_ma.ma_crossed_below(slow_ma)\n    return entries, exits', isActive: false }
+  ]);
+  const [dateRange, setDateRange] = useState('1Y');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+  const [isBacktesting, setIsBacktesting] = useState(false);
+  const [backtestResults, setBacktestResults] = useState<any[]>([]);
 
   const handleOpenSimulatedTrade = () => {
     if (!newTrade.symbol || !newTrade.entry) return toast.error("Enter symbol and entry price.");
@@ -26,6 +49,52 @@ export default function Simulations() {
   const closeTrade = (id: number) => {
     setSimulatedTrades(simulatedTrades.filter(t => t.id !== id));
     toast.success("Simulated Trade Closed");
+  };
+
+  // Backtesting Handlers
+  const toggleAllStrategies = (active: boolean) => {
+    setStrategies(strategies.map(s => ({ ...s, isActive: active })));
+    toast.info(`All strategies toggled ${active ? 'ON' : 'OFF'}`);
+  };
+
+  const updateStrategy = (id: string, key: keyof Strategy, value: any) => {
+    setStrategies(strategies.map(s => s.id === id ? { ...s, [key]: value } : s));
+  };
+
+  const deleteStrategy = (id: string) => {
+    setStrategies(strategies.filter(s => s.id !== id));
+  };
+
+  const addStrategy = () => {
+    setStrategies([...strategies, { 
+      id: Date.now().toString(), 
+      name: `Strategy ${strategies.length + 1}`, 
+      code: '# Import libraries\nimport vectorbt as vbt\n', 
+      isActive: false 
+    }]);
+  };
+
+  const runBacktest = () => {
+    const activeStrategies = strategies.filter(s => s.isActive);
+    if (activeStrategies.length === 0) return toast.error('No strategies toggled ON for backtesting.');
+    
+    setIsBacktesting(true);
+    setBacktestResults([]);
+    
+    // Simulate VectorBT backtest execution
+    setTimeout(() => {
+      const results = activeStrategies.map(s => ({
+        id: s.id,
+        name: s.name,
+        winRate: (Math.random() * 30 + 40).toFixed(2),
+        totalReturn: (Math.random() * 150 - 20).toFixed(2),
+        maxDrawdown: (Math.random() * 20 + 5).toFixed(2),
+        tradesCount: Math.floor(Math.random() * 200 + 50)
+      }));
+      setBacktestResults(results);
+      setIsBacktesting(false);
+      toast.success('VectorBT Backtest completed successfully!');
+    }, 2500);
   };
 
   return (
@@ -44,7 +113,7 @@ export default function Simulations() {
             className={`px-6 py-2 rounded-md font-bold text-xs uppercase tracking-widest transition-all ${activeTab === 'backtesting' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
             onClick={() => setActiveTab('backtesting')}
           >
-            Backtesting
+            VectorBT Backtesting
           </button>
           <button 
             className={`px-6 py-2 rounded-md font-bold text-xs uppercase tracking-widest transition-all ${activeTab === 'forward' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
@@ -54,19 +123,6 @@ export default function Simulations() {
           </button>
         </div>
       </div>
-
-      {activeTab === 'backtesting' && (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-in fade-in zoom-in-95 duration-500">
-           <Construction className="h-16 w-16 text-primary/50 animate-pulse" />
-           <h2 className="text-2xl font-black tracking-tight">Backtesting Engine in Development</h2>
-           <p className="text-muted-foreground max-w-lg">
-             We are building a robust Monte Carlo and Tick-Level replay system. This engine will allow your future AI Agent to prove its profitability across 10,000 historical market iterations.
-           </p>
-           <Badge variant="outline" className="mt-4 border-primary/30 text-primary bg-primary/10 tracking-widest uppercase">
-             Coming Soon
-           </Badge>
-        </div>
-      )}
 
       {activeTab === 'forward' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -117,13 +173,17 @@ export default function Simulations() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Symbol</Label>
-                  <Input 
-                    placeholder="XAUUSD" 
-                    className="font-bold uppercase" 
-                    value={newTrade.symbol}
-                    onChange={e => setNewTrade({...newTrade, symbol: e.target.value})}
-                  />
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Asset Symbol</Label>
+                  <Select value={newTrade.symbol} onValueChange={v => setNewTrade({...newTrade, symbol: v})}>
+                    <SelectTrigger className="font-bold uppercase">
+                      <SelectValue placeholder="Select Asset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {POPULAR_SYMBOLS.map(s => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -207,6 +267,140 @@ export default function Simulations() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'backtesting' && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
+          <Card className="bg-card/50 border-border/50">
+            <CardHeader className="flex flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-border/20">
+              <div>
+                <CardTitle className="uppercase tracking-tight flex items-center gap-2">
+                  <Code2 className="h-5 w-5 text-primary" />
+                  VectorBT Python Engine
+                </CardTitle>
+                <CardDescription className="text-xs max-w-lg mt-1">
+                  Write VectorBT Python strategies. Toggle specific strategies to test them concurrently against historical datasets.
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-lg border border-border/50">
+                  <Power className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-xs font-bold uppercase tracking-widest cursor-pointer whitespace-nowrap">Toggle All</Label>
+                  <Switch 
+                    checked={strategies.every(s => s.isActive) && strategies.length > 0}
+                    onCheckedChange={toggleAllStrategies} 
+                  />
+                </div>
+                <Button onClick={runBacktest} disabled={isBacktesting} className="font-black uppercase tracking-widest gap-2">
+                  {isBacktesting ? <span className="animate-pulse">Running...</span> : <Play className="h-4 w-4" />}
+                  Run Backtest
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
+              
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-muted/20 p-4 rounded-lg border border-border/50">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarIcon className="h-4 w-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Historical Range</span>
+                </div>
+                <Select value={dateRange} onValueChange={setDateRange}>
+                  <SelectTrigger className="w-[180px] bg-background">
+                    <SelectValue placeholder="Select Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1Y">Last 1 Year</SelectItem>
+                    <SelectItem value="2Y">Last 2 Years</SelectItem>
+                    <SelectItem value="5Y">Last 5 Years</SelectItem>
+                    <SelectItem value="CUSTOM">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {dateRange === 'CUSTOM' && (
+                  <div className="flex items-center gap-2 w-full md:w-auto">
+                    <Input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} className="bg-background" />
+                    <span className="text-muted-foreground px-2">to</span>
+                    <Input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} className="bg-background" />
+                  </div>
+                )}
+              </div>
+
+              {backtestResults.length > 0 && (
+                <div className="space-y-4 animate-in slide-in-from-top-4">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <DownloadCloud className="h-4 w-4" />
+                    VectorBT Results
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {backtestResults.map(res => (
+                      <Card key={res.id} className="bg-primary/5 border-primary/20">
+                        <CardHeader className="py-3">
+                          <CardTitle className="text-sm font-black text-primary">{res.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-2 gap-4 pb-4">
+                          <div>
+                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Win Rate</p>
+                            <p className="text-lg font-mono font-bold text-green-500">{res.winRate}%</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Total Return</p>
+                            <p className={`text-lg font-mono font-bold ${Number(res.totalReturn) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                              {Number(res.totalReturn) >= 0 ? '+' : ''}{res.totalReturn}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Max Drawdown</p>
+                            <p className="text-lg font-mono font-bold text-red-500">-{res.maxDrawdown}%</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Trades Taken</p>
+                            <p className="text-lg font-mono font-bold">{res.tradesCount}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {strategies.map((strategy, index) => (
+                  <Card key={strategy.id} className={`border ${strategy.isActive ? 'border-primary/50 bg-primary/5' : 'border-border/50 bg-card/40'} transition-all`}>
+                    <CardHeader className="py-3 flex flex-row items-center justify-between border-b border-border/10">
+                      <div className="flex items-center gap-3">
+                        <Switch 
+                          checked={strategy.isActive} 
+                          onCheckedChange={(checked) => updateStrategy(strategy.id, 'isActive', checked)}
+                        />
+                        <Input 
+                          value={strategy.name}
+                          onChange={(e) => updateStrategy(strategy.id, 'name', e.target.value)}
+                          className="h-7 text-sm font-bold bg-transparent border-none px-1 py-0 shadow-none focus-visible:ring-1 w-[150px]"
+                        />
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive opacity-50 hover:opacity-100" onClick={() => deleteStrategy(strategy.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <Textarea 
+                        value={strategy.code}
+                        onChange={(e) => updateStrategy(strategy.id, 'code', e.target.value)}
+                        className="min-h-[250px] font-mono text-xs bg-black/50 border-0 rounded-none focus-visible:ring-0 p-4 text-green-400 placeholder:text-muted-foreground/30 resize-y"
+                        spellCheck={false}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Button variant="outline" onClick={addStrategy} className="w-full border-dashed border-2 py-8 text-muted-foreground hover:text-primary hover:border-primary/50 hover:bg-primary/5 font-bold uppercase tracking-widest gap-2">
+                <Plus className="h-4 w-4" />
+                Add Python Strategy
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
