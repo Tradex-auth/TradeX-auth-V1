@@ -30,11 +30,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Safety timeout for initial sync total - increased to 180s
+    // Safety timeout for initial sync total - decreased to 12s
     const initialSyncTimeout = setTimeout(() => {
       console.warn('AuthContext: Safety timeout reached. Forcing loading to end.');
       setLoading(false);
-    }, 180000);
+    }, 12000);
 
     const supabaseUrl = getEnv('VITE_SUPABASE_URL');
     if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getSessionWithTimeout = async () => {
       console.log('AuthContext: Fetching initial session...');
       const timeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Session fetch timeout')), 120000)
+        setTimeout(() => reject(new Error('Session fetch timeout')), 8000)
       );
       const sessionAttempt = supabase.auth.getSession();
       return Promise.race([sessionAttempt, timeout]) as Promise<{ data: { session: Session | null } }>;
@@ -94,9 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   async function fetchProfile(uid: string, retryCount = 0) {
     console.log(`AuthContext: Fetching profile for ${uid} (attempt ${retryCount + 1})...`);
     try {
-      // Shorter timeout per attempt (90s) to allow faster retries
+      // Shorter timeout per attempt (5s) to allow faster retries
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 90000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
       );
       
       const profilePromise = getProfile(uid);
@@ -107,9 +107,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false); // Success, stop loading
     } catch (err) {
       console.error(`AuthContext: Profile sync failed (attempt ${retryCount + 1}) - uid: ${uid}`, err);
-      if (retryCount < 3) {
+      if (retryCount < 1) {
         // Exponential backoff for retries
-        const backoff = Math.pow(2, retryCount) * 1500;
+        const backoff = Math.pow(2, retryCount) * 1000;
         console.log(`AuthContext: Retrying profile fetch in ${backoff}ms...`);
         await new Promise(resolve => setTimeout(resolve, backoff));
         return fetchProfile(uid, retryCount + 1);
