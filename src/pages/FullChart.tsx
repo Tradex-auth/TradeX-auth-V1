@@ -89,7 +89,7 @@ export default function FullChart() {
       )}
       <div className="flex-1 w-full h-full relative">
         <iframe
-          src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_7623a_full&symbol=${tvSymbol}&interval=D&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=0&locale=en`}
+          src={`https://www.tradingview.com/widgetembed/?symbol=${tvSymbol}&interval=D&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=0&locale=en`}
           style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', inset: 0 }}
           title={`Full TradingView Chart for ${symbol}`}
           referrerPolicy="no-referrer"

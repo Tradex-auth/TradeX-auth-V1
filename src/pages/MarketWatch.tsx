@@ -209,7 +209,7 @@ const MarketItemCard: React.FC<MarketItemCardProps> = ({
           <div className="p-4 pt-0 animate-in zoom-in-95 duration-300">
             <div className="aspect-[16/10] w-full rounded-lg overflow-hidden border border-primary/20 bg-black shadow-2xl">
               <iframe
-                src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_7623a&symbol=${getTVSymbol(item.symbol)}&interval=D&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=1&popupwidth=1000&popupheight=650&locale=en`}
+                src={`https://www.tradingview.com/widgetembed/?symbol=${getTVSymbol(item.symbol)}&interval=D&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=1&popupwidth=1000&popupheight=650&locale=en`}
                 style={{ width: '100%', height: '100%', border: 'none' }}
                 title={`TradingView Chart for ${item.symbol}`}
                 referrerPolicy="no-referrer"
