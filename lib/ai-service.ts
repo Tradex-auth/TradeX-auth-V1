@@ -29,6 +29,15 @@ export function estimateCost(inputTokens: number, outputTokens: number, model: '
 }
 
 export async function getMotivationQuote() {
+  const fallbacks = [
+    "The market rewards discipline. Stay focused.",
+    "Bhai, discipline hi asli wealth hai. Baaki sab moh maya hai.",
+    "Aukaat actions se banti hai, baaton se nahi. Execute the plan.",
+    "Boredom is the price of profitable trading.",
+    "Don't trade your PnL, trade the system. Stick to the rules."
+  ];
+  const randomFallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+
   try {
     if (openai) {
       const prompt = "Generate a raw, blunt, Hinglish motivation quote (mix of Hindi/English) about trading, aukaat, discipline, and building wealth. Max 15 words. Be informal and direct.";
@@ -43,16 +52,16 @@ export async function getMotivationQuote() {
     }
 
     if (genAI) {
-      const model = "gemini-3-flash-preview";
+      const model = "gemini-1.5-flash"; // Fixed valid model name
       const prompt = "Generate a raw, blunt, Hinglish motivation quote (mix of Hindi/English) about trading, aukaat, discipline, and building wealth. Max 15 words. Be informal and direct.";
       const response = await genAI.models.generateContent({ model, contents: prompt });
-      return { text: response.text || "Bhai, discipline hi asli wealth hai. Baaki sab moh maya hai.", cost: "0.000000", provider: 'Gemini' };
+      return { text: response.text || randomFallback, cost: "0.000000", provider: 'Gemini' };
     }
 
-    return { text: "Keep pushing forward. Success is a journey, not a destination.", cost: "0.000000", provider: 'Local' };
+    return { text: randomFallback, cost: "0.000000", provider: 'Local (No API Key)' };
   } catch (error) {
     console.error("AI Error:", error);
-    return { text: "The market rewards discipline.", cost: "0.000000", provider: 'Local' };
+    return { text: randomFallback, cost: "0.000000", provider: 'Local (Fallback)' };
   }
 }
 

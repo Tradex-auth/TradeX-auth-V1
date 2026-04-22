@@ -92,8 +92,14 @@ export function MorningBriefing() {
         .select()
         .single();
 
-      if (error) throw error;
-      setBriefing(newBriefing);
+      if (error) {
+        console.error("Briefing DB Error:", error);
+        // Force the UI to show the briefing even if DB drops it
+        setBriefing({ content: res.text, date: today, user_id: user.id } as any);
+      } else {
+        setBriefing(newBriefing);
+      }
+      
       setBriefingCost(res.cost);
       setProvider(res.provider);
       toast.success(`Morning briefing updated via ${res.provider}`);
